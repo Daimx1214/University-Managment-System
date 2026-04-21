@@ -42,25 +42,42 @@ The University Management System provides a full-suite REST API covering every d
 | Delete Strategy   | Soft Delete (IsActive)     | Custom BaseModel         |
 
 # **3\. Project Structure**
+# **3\. Project Structure**
 
 The project follows a clean, separated architecture where every concern lives in its own dedicated folder:
-UniversityManagmentSystem/
+
+UniversityManagementSystem/
+├── Models/ ← 62+ domain model classes (unchanged)
+│ ├── BaseModel.cs ← Id, IsActive, CreatedAt, UpdatedAt, DeletedAt
+│ ├── University.cs
+│ ├── Campus.cs
+│ ├── Student.cs
+│ └── ... (all models)
 │
-├── Models/                        # Entity classes
-│   ├── Student.cs
-│   ├── Teacher.cs
-│   ├── Course.cs
-│   ├── Department.cs
-│   └── Enrollment.cs
+├── Database/
+│ └── LibraryDbContext.cs ← EF Core DbContext with all DbSets & Fluent API
 │
-├── Data/                          # EF Core DbContext
-│   └── UniversityDbContext.cs
+├── DTOs/
+│ ├── ApiResponse.cs ← Generic { success, message, data } wrapper
+│ └── AllDtos.cs ← Read & Create DTOs for every model
 │
-├── Migrations/                    # Auto-generated EF Core migrations
+├── Services/
+│ ├── Interfaces/
+│ │ └── IGenericService.cs ← CRUD interface
+│ └── GenericService.cs ← Generic implementation (soft-delete, timestamps)
 │
-├── Program.cs                     # Application entry point & menu logic
+├── Controllers/ ← 61 API controllers (one per model)
+│ ├── UniversityController.cs
+│ ├── CampusController.cs
+│ └── ... (61 total)
 │
-└── UniversityManagmentSystem.csproj
+├── Properties/
+│ └── launchSettings.json
+│
+├── appsettings.json ← Connection string
+├── appsettings.Development.json
+├── Program.cs ← Auto-migration + Swagger at root
+└── UniversityManagementSystem.csproj
 
 ## **Every Model Exposes These 5 Endpoints**
 
@@ -86,23 +103,16 @@ Make sure the following are installed on your machine before proceeding:
 
 ## **Step 1 - Clone the Repository**
 
-git clone <https://github.com/your-username/UniversityManagementSystem.git>
+git clone <https://github.com/Daimx1214/UniversityManagementSystem.git>
 
 cd UniversityManagementSystem
 
 ## **Step 2 - Configure the Connection String**
 
 Open appsettings.json and update the SqlConnection value to point to your SQL Server instance:
-
-{
-
 "ConnectionStrings": {
-              "SqlConnection": "Server=LAPTOP-VACOCRFI;
-              Database=UMS;
-              Integrated Security=true;
-              TrustServerCertificate=True"
-              }
-    }
+  "DefaultConnection": "Server=LAPTOP-VACOCRFI;Database=UniversitySystem;Trusted_Connection=True;"
+}
 
 
 ## **Step 3 - Apply Migrations & Create Database**
@@ -124,14 +134,10 @@ _Note: The application also auto-migrates on startup via db.Database.Migrate() i
 
 dotnet run
 
-\# Or with hot reload during development
-
+**Or with hot reload during development**
 dotnet watch run
-
 Once running, open your browser and navigate to:
-
 <http://localhost:5000> ← Swagger UI (interactive API docs)
-
 <http://localhost:5000/api/University> ← Example API endpoint
 
 # **5\. Database Schema Overview**
@@ -378,5 +384,5 @@ _Built with ASP.NET Core 8 • Entity Framework Core • SQL Server_
 Developed by: **Your Name**
 Email: <Daimx1214@example.com>
 GitHub: <https://github.com/Daimx1214>
-LinkedIn: <linkedin.com/in/daim-ali-318479380>
+LinkedIn: linkedin.com/in/daim-ali-318479380
 
