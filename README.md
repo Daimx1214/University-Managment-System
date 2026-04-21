@@ -3,8 +3,25 @@ UMS — ASP.NET Core 8 Web API
 
 .NET 8
 Framework	SQL Server
-Database	EF Core 8
-ORM	Swagger UI
+Database	EF Core 8Feature,Description,Endpoint
+🏛️ **Academic Setup**,"Manage universities, campuses, faculties, institutes & departments",`/api/University`
+👨‍🎓 **Student Management**,"Student registration, enrollment, program & session tracking",`/api/Student`
+👔 **Employee & HR**,"Employee records, designations, relation histories & payroll structures",`/api/Employee`
+📚 **Library System**,"Books, copies, issuances, reservations, returns & fine management",`/api/ItemInfo`
+📋 **Circulation Rules**,"Configure loan limits, grace days, overdue fines per member type",`/api/CirculationRule`
+💰 **Fine Management**,"Fine categories, definitions, user fines & payment transactions",`/api/UserFine`
+🛒 **Acquisitions**,"Item quotations, purchase orders & acquisition records",`/api/PurchaseItem`
+🏢 **Physical Structure**,"Buildings, blocks, floors, rooms, room types & feature allocations",`/api/Building`
+🔢 **Accession Control**,Accession number patterns per branch for systematic item cataloguing,`/api/AccessionPattern`
+📦 **Item Conditions**,Track physical condition & remarks for every item copy,`/api/ItemCondition`
+📄 **Requisitions**,Library & item requisition workflows with employee approval chain,`/api/LibraryRequisition`
+🗑️ **Withdrawals**,Withdraw damaged or decommissioned item copies with audit trail,`/api/Withdrawal`
+🛡️ **Soft Delete**,All records are soft-deleted (`IsActive` flag) — no data loss ever,All endpoints
+⏰ **Auto Timestamps**,"`CreatedAt`, `UpdatedAt`, `DeletedAt` auto-populated on every operation",All endpoints
+📖 **Swagger UI**,Interactive API documentation available at application root,`/`
+🔄 **Auto Migration**,Database schema applied automatically on every application startup,`Program.cs`
+ORM	Swagger UI[table-1776752296521.csv](https://github.com/user-attachments/files/26921669/table-1776752296521.csv)
+
 Docs
 
 A comprehensive REST API for managing all university operations including
