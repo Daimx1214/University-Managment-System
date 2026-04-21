@@ -47,11 +47,17 @@ The project follows a clean, separated architecture where every concern lives in
 
 UniversityManagementSystem/
 ├── Models/ ← 62+ domain model classes (unchanged)
+
 │ ├── BaseModel.cs ← Id, IsActive, CreatedAt, UpdatedAt, DeletedAt
+
 │ ├── University.cs
+
 │ ├── Campus.cs
+
 │ ├── Student.cs
+
 │ └── ... (all models)
+
 │
 
 ├── Database/
