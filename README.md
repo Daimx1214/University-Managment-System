@@ -44,24 +44,14 @@ The University Management System provides a full-suite REST API covering every d
 # **3\. Project Structure**
 
 The project follows a clean, separated architecture where every concern lives in its own dedicated folder:
-# **3\. Project Structure**
-
-The project follows a clean, separated architecture where every concern lives in its own dedicated folder:
 
 UniversityManagementSystem/
-
 ├── Models/ ← 62+ domain model classes (unchanged)
-
 │ ├── BaseModel.cs ← Id, IsActive, CreatedAt, UpdatedAt, DeletedAt
-
 │ ├── University.cs
-
 │ ├── Campus.cs
-
 │ ├── Student.cs
-
 │ └── ... (all models)
-
 │
 
 ├── Database/
