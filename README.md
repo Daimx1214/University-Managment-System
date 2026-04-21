@@ -42,43 +42,75 @@ The University Management System provides a full-suite REST API covering every d
 | Delete Strategy   | Soft Delete (IsActive)     | Custom BaseModel         |
 
 # **3\. Project Structure**
+
+The project follows a clean, separated architecture where every concern lives in its own dedicated folder:
 # **3\. Project Structure**
 
 The project follows a clean, separated architecture where every concern lives in its own dedicated folder:
 
 UniversityManagementSystem/
-├── Models/ ← 62+ domain model classes (unchanged)
-│ ├── BaseModel.cs ← Id, IsActive, CreatedAt, UpdatedAt, DeletedAt
-│ ├── University.cs
-│ ├── Campus.cs
-│ ├── Student.cs
-│ └── ... (all models)
-│
-├── Database/
-│ └── LibraryDbContext.cs ← EF Core DbContext with all DbSets & Fluent API
-│
-├── DTOs/
-│ ├── ApiResponse.cs ← Generic { success, message, data } wrapper
-│ └── AllDtos.cs ← Read & Create DTOs for every model
-│
-├── Services/
-│ ├── Interfaces/
-│ │ └── IGenericService.cs ← CRUD interface
-│ └── GenericService.cs ← Generic implementation (soft-delete, timestamps)
-│
-├── Controllers/ ← 61 API controllers (one per model)
-│ ├── UniversityController.cs
-│ ├── CampusController.cs
-│ └── ... (61 total)
-│
-├── Properties/
-│ └── launchSettings.json
-│
-├── appsettings.json ← Connection string
-├── appsettings.Development.json
-├── Program.cs ← Auto-migration + Swagger at root
-└── UniversityManagementSystem.csproj
 
+├── Models/ ← 62+ domain model classes (unchanged)
+
+│ ├── BaseModel.cs ← Id, IsActive, CreatedAt, UpdatedAt, DeletedAt
+
+│ ├── University.cs
+
+│ ├── Campus.cs
+
+│ ├── Student.cs
+
+│ └── ... (all models)
+
+│
+
+├── Database/
+
+│ └── LibraryDbContext.cs ← EF Core DbContext with all DbSets & Fluent API
+
+│
+
+├── DTOs/
+
+│ ├── ApiResponse.cs ← Generic { success, message, data } wrapper
+
+│ └── AllDtos.cs ← Read & Create DTOs for every model
+
+│
+
+├── Services/
+
+│ ├── Interfaces/
+
+│ │ └── IGenericService.cs ← CRUD interface
+
+│ └── GenericService.cs ← Generic implementation (soft-delete, timestamps)
+
+│
+
+├── Controllers/ ← 61 API controllers (one per model)
+
+│ ├── UniversityController.cs
+
+│ ├── CampusController.cs
+
+│ └── ... (61 total)
+
+│
+
+├── Properties/
+
+│ └── launchSettings.json
+
+│
+
+├── appsettings.json ← Connection string
+
+├── appsettings.Development.json
+
+├── Program.cs ← Auto-migration + Swagger at root
+
+└── UniversityManagementSystem.csproj
 ## **Every Model Exposes These 5 Endpoints**
 
 | **Method** | **URL Pattern**   | **Action**                                   |
