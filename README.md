@@ -38,40 +38,23 @@ The University Management System provides a full-suite REST API covering every d
 | **Delete Strategy**   | Soft Delete (`IsActive`)     | Custom `BaseModel`  |
 
 **Project Structure**
-The project follows a clean, separated architecture where every concern lives in its own dedicated folder:
-UniversityManagementSystem/
+UniversityManagmentSystem/
 │
-├── 📂 Models/                    ← 62+ domain model classes
-│   ├── BaseModel.cs              ← Id, IsActive, CreatedAt, UpdatedAt, DeletedAt
-│   ├── University.cs
-│   ├── Campus.cs
+├── Models/                        # Entity classes
 │   ├── Student.cs
-│   └── ... (all models)
+│   ├── Teacher.cs
+│   ├── Course.cs
+│   ├── Department.cs
+│   └── Enrollment.cs
 │
-├── 📂 Database/
-│   └── LibraryDbContext.cs       ← EF Core DbContext with all DbSets & Fluent API
+├── Data/                          # EF Core DbContext
+│   └── UniversityDbContext.cs
 │
-├── 📂 DTOs/
-│   ├── ApiResponse.cs            ← Generic { success, message, data } wrapper
-│   └── AllDtos.cs                ← Read & Create DTOs for every model
+├── Migrations/                    # Auto-generated EF Core migrations
 │
-├── 📂 Services/
-│   ├── 📂 Interfaces/
-│   │   └── IGenericService.cs    ← CRUD interface
-│   └── GenericService.cs         ← Generic implementation (soft-delete, timestamps)
+├── Program.cs                     # Application entry point & menu logic
 │
-├── 📂 Controllers/               ← 61 API controllers (one per model)
-│   ├── UniversityController.cs
-│   ├── CampusController.cs
-│   └── ... (61 total)
-│
-├── 📂 Properties/
-│   └── launchSettings.json
-│
-├── appsettings.json              ← Connection string
-├── appsettings.Development.json
-├── Program.cs                    ← Auto-migration + Swagger at root
-└── UniversityManagementSystem.csproj
+└── UniversityManagmentSystem.csproj
 
 **Every Model Exposes These 5 Endpoints**
 | Method     | URL Pattern         | Action                                         |
@@ -93,12 +76,13 @@ Make sure the following are installed on your machine before proceeding:
 ✅ Git — for cloning the repository
 
 **Clone the Repository**
-git clone https://github.com/your-username/UniversityManagementSystem.git
+git clone https://github.com/Daimx1214/UniversityManagementSystem.git
 cd UniversityManagementSystem
 
 **Configure the Connection String**
 Open appsettings.json and update the SqlConnection value to point to your SQL Server instance:
 {
+
   "ConnectionStrings": {
     "SqlConnection": "Server=LAPTOP-VACOCRFI;
                        Database=UMS;
@@ -108,21 +92,19 @@ Open appsettings.json and update the SqlConnection value to point to your SQL Se
 }
 
  **Apply Migrations & Create Database**
- Run the following commands in the project root to scaffold and apply the initial migration:
-
-# Restore all NuGet packages
-dotnet restore
-
-# Create the initial EF Core migration
 dotnet ef migrations add InitialCreate
-
-# Apply migration to the database (creates DB if it does not exist)
+dotnet ef database update
+**Restore all NuGet packages**
+dotnet restore
+**Create the initial EF Core migration**
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+**Apply migration to the database (creates DB if it does not exist)**
 dotnet ef database update
  Note: The application also auto-migrates on startup via db.Database.Migrate() in Program.cs, so this step can be skipped on subsequent runs.
-
 **Run the Application**
-dotnet run
-# Or with hot reload during development
+dotnet run --project UniversityManagmentSystem
+**Or with hot reload during development**
 dotnet watch run
 
 | URL                                    | Description                          |
@@ -130,7 +112,89 @@ dotnet watch run
 | `http://localhost:5000`                | 🌐 Swagger UI (interactive API docs) |
 | `http://localhost:5000/api/University` | 📡 Example API endpoint              |
 
+**Database Schema Overview**
+The UMS database is organized into logical modules. Each table inherits from BaseModel which provides Id, IsActive, CreatedBy, CreatedAt, UpdatedBy, UpdatedAt, DeletedBy, and DeletedAt columns automatically.
+**🏛️ Core Academic Structure**
 
+ | Table / Entity | Key Fields                                        | Relationships              |
+| -------------- | ------------------------------------------------- | -------------------------- |
+| **University** | `Id`, `Name`, `Code`, `Description`               | 1 → Many Campuses          |
+| **Campus**     | `Id`, `Name`, `Code`, `UniversityId`              | 1 → Many Blocks, Faculties |
+| **Faculty**    | `Id`, `Name`, `Code`, `CampusId`, `EstablishedIn` | 1 → Many Institutes        |
+| **Institute**  | `Id`, `Name`, `Code`, `FacultyId`                 | 1 → Many Departments       |
+| **Department** | `Id`, `Name`, `Code`, `InstituteId`               | Self-ref: SubDepartments   |
+| **Block**      | `Id`, `Name`, `Code`, `CampusId`                  | 1 → Many Buildings         |
+| **Building**   | `Id`, `Name`, `Code`, `BlockId`                   | 1 → Many Floors            |
+| **Floor**      | `Id`, `Name`, `Code`, `BuildingId`                | 1 → Many Rooms             |
+| **Room**       | `Id`, `Name`, `Code`, `FloorId`, `EstablishedIn`  | Has RoomType & Features    |
 
- 
+**API Endpoints**
+**Authentication**
+🔒 Coming Soon: JWT Bearer Authentication
 
+**University Controller**
+GET    /api/University              → Get all universities
+GET    /api/University/{id}         → Get university by ID
+POST   /api/University              → Create new university
+PUT    /api/University/{id}         → Update university
+DELETE /api/University/{id}         → Soft delete university
+
+**EF Core Commands Reference**
+
+| Command                            | Description                                       |
+| ---------------------------------- | ------------------------------------------------- |
+| `dotnet ef migrations add <Name>`  | Create a new migration with the given name        |
+| `dotnet ef database update`        | Apply all pending migrations to the database      |
+| `dotnet ef database drop`          | Drop the entire database *(use with caution)*     |
+| `dotnet ef migrations remove`      | Remove the last unapplied migration               |
+| `dotnet ef migrations list`        | List all migrations and their applied status      |
+| `dotnet ef dbcontext info`         | Display DbContext configuration info              |
+| `dotnet ef dbcontext scaffold ...` | Reverse-engineer models from an existing database |
+| `dotnet ef database update 0`      | Roll back all migrations (reset to empty schema)  |
+| `dotnet ef database update <Name>` | Roll forward or back to a specific migration      |
+
+**Sample Code**
+public class GenericService<TEntity> : IGenericService<TEntity>
+    where TEntity : BaseModel
+{
+    private readonly LibraryDbContext _context;
+    private readonly DbSet<TEntity> _dbSet;
+
+    public GenericService(LibraryDbContext context)
+    {
+        _context = context;
+        _dbSet = context.Set<TEntity>();
+    }
+
+    // Returns only active (non-deleted) records
+    public async Task<IEnumerable<TEntity>> GetAllAsync()
+        => await _dbSet.Where(e => e.IsActive).ToListAsync();
+
+    // Soft delete — never hard deletes
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var entity = await _dbSet
+            .FirstOrDefaultAsync(e => e.Id == id && e.IsActive);
+
+        if (entity == null) return false;
+
+        entity.IsActive = false;
+        entity.DeletedAt = DateTime.UtcNow;
+        entity.DeletedBy = "system";
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+}
+
+**Contributing**
+Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
+
+Fork the repository
+Create your feature branch: git checkout -b feature/YourFeature
+Commit your changes: git commit -m 'Add YourFeature'
+Push to the branch: git push origin feature/YourFeature
+Open a Pull Request
+
+**Author**
+Daim GitHub: @Daimx1214
