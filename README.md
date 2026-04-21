@@ -1,13 +1,7 @@
-**UNIVERSITY MANAGEMENT SYSTEM**
+**University Management System — .NET & EF Core**
 
-_UMS - ASP.NET Core 8 Web API_
+A console-based University Management System built with C# (.NET) and Entity Framework Core, demonstrating real-world database management with code-first migrations, LINQ queries, and relational data modelling across core university entities such as students, teachers, courses, departments, and enrollments.
 
-| **.NET 8**<br><br>Framework | **SQL Server**<br><br>Database | **EF Core 8**<br><br>ORM | **Swagger UI**<br><br>Docs |
-| --------------------------- | ------------------------------ | ------------------------ | -------------------------- |
-
-_A comprehensive REST API for managing all university operations including_
-
-_students, faculty, courses, departments, examinations, finance, and library services._
 
 # **1\. Features**
 
@@ -50,70 +44,23 @@ The University Management System provides a full-suite REST API covering every d
 # **3\. Project Structure**
 
 The project follows a clean, separated architecture where every concern lives in its own dedicated folder:
-
-UniversityManagementSystem/
-
-├── Models/ ← 62+ domain model classes (unchanged)
-
-│ ├── BaseModel.cs ← Id, IsActive, CreatedAt, UpdatedAt, DeletedAt
-
-│ ├── University.cs
-
-│ ├── Campus.cs
-
-│ ├── Student.cs
-
-│ └── ... (all models)
-
+UniversityManagmentSystem/
 │
-
-├── Database/
-
-│ └── LibraryDbContext.cs ← EF Core DbContext with all DbSets & Fluent API
-
+├── Models/                        # Entity classes
+│   ├── Student.cs
+│   ├── Teacher.cs
+│   ├── Course.cs
+│   ├── Department.cs
+│   └── Enrollment.cs
 │
-
-├── DTOs/
-
-│ ├── ApiResponse.cs ← Generic { success, message, data } wrapper
-
-│ └── AllDtos.cs ← Read & Create DTOs for every model
-
+├── Data/                          # EF Core DbContext
+│   └── UniversityDbContext.cs
 │
-
-├── Services/
-
-│ ├── Interfaces/
-
-│ │ └── IGenericService.cs ← CRUD interface
-
-│ └── GenericService.cs ← Generic implementation (soft-delete, timestamps)
-
+├── Migrations/                    # Auto-generated EF Core migrations
 │
-
-├── Controllers/ ← 61 API controllers (one per model)
-
-│ ├── UniversityController.cs
-
-│ ├── CampusController.cs
-
-│ └── ... (61 total)
-
+├── Program.cs                     # Application entry point & menu logic
 │
-
-├── Properties/
-
-│ └── launchSettings.json
-
-│
-
-├── appsettings.json ← Connection string
-
-├── appsettings.Development.json
-
-├── Program.cs ← Auto-migration + Swagger at root
-
-└── UniversityManagementSystem.csproj
+└── UniversityManagmentSystem.csproj
 
 ## **Every Model Exposes These 5 Endpoints**
 
@@ -150,35 +97,25 @@ Open appsettings.json and update the SqlConnection value to point to your SQL Se
 {
 
 "ConnectionStrings": {
+              "SqlConnection": "Server=LAPTOP-VACOCRFI;
+              Database=UMS;
+              Integrated Security=true;
+              TrustServerCertificate=True"
+              }
+    }
 
-"SqlConnection": "Server=YOUR_SERVER_NAME\\\\SQLEXPRESS;
-
-Database=UMS;
-
-Integrated Security=true;
-
-TrustServerCertificate=True"
-
-}
-
-}
-
-_Replace YOUR_SERVER_NAME with your actual SQL Server host name._
 
 ## **Step 3 - Apply Migrations & Create Database**
 
 Run the following commands in the project root to scaffold and apply the initial migration:
 
-\# Restore all NuGet packages
-
+**Restore all NuGet packages**
 dotnet restore
 
-\# Create the initial EF Core migration
-
+**Create the initial EF Core migration**
 dotnet ef migrations add InitialCreate
 
-\# Apply migration to the database (creates DB if it does not exist)
-
+**Apply migration to the database (creates DB if it does not exist)**
 dotnet ef database update
 
 _Note: The application also auto-migrates on startup via db.Database.Migrate() in Program.cs, so this step can be skipped on subsequent runs._
@@ -273,160 +210,109 @@ _Tip: If you get a build error running EF commands, run dotnet build first to en
 
 ## **7.1 Generic Service (Services/GenericService.cs)**
 
-The GenericService handles all CRUD operations with soft-delete and automatic timestamp management:
-
-public class GenericService&lt;TEntity&gt; : IGenericService&lt;TEntity&gt;
-
-where TEntity : BaseModel
-
+public class GenericService<TEntity> : IGenericService<TEntity>
+    where TEntity : BaseModel
 {
+    private readonly LibraryDbContext _context;
+    private readonly DbSet<TEntity> _dbSet;
 
-private readonly LibraryDbContext \_context;
+    public GenericService(LibraryDbContext context)
+    {
+        _context = context;
+        _dbSet = context.Set<TEntity>();
+    }
 
-private readonly DbSet&lt;TEntity&gt; \_dbSet;
+    // Returns only active (non-deleted) records
+    public async Task<IEnumerable<TEntity>> GetAllAsync()
+        => await _dbSet.Where(e => e.IsActive).ToListAsync();
 
-public GenericService(LibraryDbContext context)
+    // Soft delete — never hard deletes
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var entity = await _dbSet
+            .FirstOrDefaultAsync(e => e.Id == id && e.IsActive);
 
-{
+        if (entity == null) return false;
 
-\_context = context;
+        entity.IsActive = false;
+        entity.DeletedAt = DateTime.UtcNow;
+        entity.DeletedBy = "system";
 
-\_dbSet = context.Set&lt;TEntity&gt;();
-
-}
-
-// Returns only active (non-deleted) records
-
-public async Task&lt;IEnumerable<TEntity&gt;> GetAllAsync()
-
-\=> await \_dbSet.Where(e => e.IsActive).ToListAsync();
-
-// Soft delete - never hard deletes
-
-public async Task&lt;bool&gt; DeleteAsync(int id)
-
-{
-
-var entity = await \_dbSet
-
-.FirstOrDefaultAsync(e => e.Id == id && e.IsActive);
-
-if (entity == null) return false;
-
-entity.IsActive = false;
-
-entity.DeletedAt = DateTime.UtcNow;
-
-entity.DeletedBy = "system";
-
-await \_context.SaveChangesAsync();
-
-return true;
-
-}
-
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }
 
 ## **7.2 Controller Pattern (Controllers/UniversityController.cs)**
 
-Every controller follows this standard pattern - clean, consistent, and self-documenting:
-
-\[ApiController\]
-
-\[Route("api/\[controller\]")\]
-
+[ApiController]
+[Route("api/[controller]")]
 public class UniversityController : ControllerBase
-
 {
+    private readonly GenericService<University> _service;
 
-private readonly GenericService&lt;University&gt; \_service;
+    public UniversityController(LibraryDbContext context)
+        => _service = new GenericService<University>(context);
 
-public UniversityController(LibraryDbContext context)
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var items = await _service.GetAllAsync();
+        var result = items.Select(e => new UniversityDto
+        {
+            Id = e.Id,
+            Name = e.Name,
+            Code = e.Code,
+            Description = e.Description
+        });
 
-\=> \_service = new GenericService&lt;University&gt;(context);
+        return Ok(ApiResponse<IEnumerable<UniversityDto>>.Ok(result));
+    }
 
-\[HttpGet\]
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] CreateUniversityDto dto)
+    {
+        var entity = new University
+        {
+            Name = dto.Name,
+            Code = dto.Code,
+            Description = dto.Description
+        };
 
-public async Task&lt;IActionResult&gt; GetAll()
+        var created = await _service.CreateAsync(entity);
 
-{
-
-var items = await \_service.GetAllAsync();
-
-var result = items.Select(e => new UniversityDto
-
-{
-
-Id = e.Id, Name = e.Name,
-
-Code = e.Code, Description = e.Description
-
-});
-
-return Ok(ApiResponse&lt;IEnumerable<UniversityDto&gt;>.Ok(result));
-
-}
-
-\[HttpPost\]
-
-public async Task&lt;IActionResult&gt; Create(\[FromBody\] CreateUniversityDto dto)
-
-{
-
-var entity = new University
-
-{ Name = dto.Name, Code = dto.Code, Description = dto.Description };
-
-var created = await \_service.CreateAsync(entity);
-
-return CreatedAtAction(nameof(GetById), new { id = created.Id },
-
-ApiResponse&lt;UniversityDto&gt;.Ok(
-
-new UniversityDto { Id = created.Id, Name = created.Name },
-
-"Created successfully."));
-
-}
-
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = created.Id },
+            ApiResponse<UniversityDto>.Ok(
+                new UniversityDto { Id = created.Id, Name = created.Name },
+                "Created successfully."
+            )
+        );
+    }
 }
 
 ## **7.3 API Response Format**
 
 All endpoints return a consistent JSON envelope:
 
-// Success response
-
 {
-
-"success": true,
-
-"message": "Success",
-
-"data": {
-
-"id": 1,
-
-"name": "University of Engineering & Technology",
-
-"code": "UET",
-
-"description": "Premier engineering university"
-
+  "success": true,
+  "message": "Success",
+  "data": {
+    "id": 1,
+    "name": "University of Engineering & Technology",
+    "code": "UET",
+    "description": "Premier engineering university"
+  }
 }
 
-}
-
-// Error / not found response
+**Error / not found response**
 
 {
-
-"success": false,
-
-"message": "Record not found.",
-
-"data": null
-
+  "success": false,
+  "message": "Record not found.",
+  "data": null
 }
 
 ## **7.4 Auto-Migration in Program.cs**
@@ -434,27 +320,17 @@ All endpoints return a consistent JSON envelope:
 The database is automatically migrated every time the application starts:
 
 using (var scope = app.Services.CreateScope())
-
 {
+    var db = scope.ServiceProvider
+        .GetRequiredService<LibraryDbContext>();
 
-var db = scope.ServiceProvider
-
-.GetRequiredService&lt;LibraryDbContext&gt;();
-
-try { db.Database.Migrate(); }
-
-catch (Exception ex)
-
-{
-
-var logger = scope.ServiceProvider
-
-.GetRequiredService&lt;ILogger<Program&gt;>();
-
-logger.LogError(ex, "Migration failed.");
-
-}
-
+    try { db.Database.Migrate(); }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider
+            .GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Migration failed.");
+    }
 }
 
 # **8\. Contributing**
@@ -495,21 +371,12 @@ Found a bug or want to request a feature? Open an issue on GitHub with:
 # **9\. Author**
 
 **University Management System**
-
 _Built with ASP.NET Core 8 • Entity Framework Core • SQL Server_
 
 ────────────────────────────────────────
 
 Developed by: **Your Name**
+Email: <Daimx1214@example.com>
+GitHub: <https://github.com/Daimx1214>
+LinkedIn: <linkedin.com/in/daim-ali-318479380>
 
-Email: <your.email@example.com>
-
-GitHub: <https://github.com/your-username>
-
-LinkedIn: <https://linkedin.com/in/your-profile>
-
-────────────────────────────────────────
-
-If this project helped you, please **star the repository** on GitHub!
-
-_© 2025 University Management System. MIT License._
