@@ -410,7 +410,7 @@ _Built with ASP.NET Core 8 • Entity Framework Core • SQL Server_
 ────────────────────────────────────────
 
 Developed by: **Your Name**
-Email: <Daimx1214@example.com>
+Email: <daimx1214@gmail.com>
 GitHub: <https://github.com/Daimx1214>
 LinkedIn: linkedin.com/in/daim-ali-318479380
 
