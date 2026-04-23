@@ -1,4 +1,4 @@
-**University Management System — .NET & EF Core**
+# **University Management System — .NET & EF Core**
 
 A console-based University Management System built with C# (.NET) and Entity Framework Core, demonstrating real-world database management with code-first migrations, LINQ queries, and relational data modelling across core university entities such as students, teachers, courses, departments, and enrollments.
 
